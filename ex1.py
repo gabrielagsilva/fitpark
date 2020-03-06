@@ -44,8 +44,7 @@ especiais = {
     17: "dezessete",
     18: "dezoito",
     19: "dezenove",
-    100: "cem",
-    1000: "mil"
+    100: "cem"
 }
 
 def get_cdu(numero):
@@ -74,10 +73,11 @@ def get_milhao(numero):
         return "{} {}".format(get_cdu(milhao), "milhão" if milhao == 1 else "milhões"), numero
     return "", numero
 
+
 def get_mil(numero):
     mil, numero = divmod(numero, 1000)
     if mil:
-        return "{} mil".format(get_cdu(mil)), numero
+        return "{} mil".format(get_cdu(mil)) if mil > 1 else "mil", numero
     return "", numero
 
 
@@ -91,18 +91,40 @@ def get_reais(numero):
     milhares, numero = get_mil(numero)
     resto = get_cdu(numero)
 
-    return "{}{}{} reais".format(milhoes, milhares, resto)
+    return "{}{}{}{}{} reais".format(
+        milhoes, 
+        " e " if milhoes and milhares else "",
+        milhares, 
+        " e " if milhares and resto else "",
+        resto)
+
+
+def get_centavos(numero):
+    if numero == 1:
+        return "um centavo"
+    if numero == 0:
+        return ""
+    
+    return "{} centavos".format(get_cdu(numero))
+
 
 
 valor = input("Digite um valor ou 0 para sair:")
 while valor != "0":
-    reais, centavos = valor.split(',')
-    if len(centavos) != 2 or len(reais) > 9:
+    # nao digitou um valor com casa decimal
+    if valor.find(',') < 0:   
         valor = input("Digite um valor válido:")
-    
-    # reais
-    reais = get_reais(int(reais))
-    # centavos
-    centavos = get_cdu(int(centavos))
-    
-    valor = input("Digite um valor ou 0 para sair:")
+    else:
+        reais, centavos = valor.split(',')
+        # aceitar apenas valores com dois digitos após a virgula e com até 9 dígitos antes da vírgula
+        if len(centavos) != 2 or len(reais) < 1 or len(reais) > 9:
+            valor = input("Digite um valor válido:")
+        else:
+            # reais
+            reais = get_reais(int(reais))
+            # centavos
+            centavos = get_centavos(int(centavos))
+
+            print("{}{}{}".format(reais, " e " if reais and centavos else "", centavos))
+            
+            valor = input("Digite um valor ou 0 para sair:")
